@@ -6,16 +6,16 @@ giải thích được và cách tự kiểm tra. Hãy commit sau mỗi checkpoi
 Ghi nhận thời điểm buổi lab bắt đầu là `Start`; lịch checkpoint không phụ thuộc
 vào giờ bắt đầu cụ thể:
 
-| Giai đoạn | Khung thời gian | Mốc kiểm tra |
-|---|---|---|
-| CP0 — Setup | Start +0–20 phút | Start +20 phút |
-| CP1 — Config, Health & Logging | Start +20–60 phút | Start +60 phút |
-| CP2 — Docker | Start +60–105 phút | Start +105 phút |
-| Giải lao | Start +105–115 phút | — |
-| CP3 — API Security | Start +115–160 phút | Start +160 phút |
-| CP4 — Scaling & Reliability | Start +160–200 phút | Start +200 phút |
-| CP5 — Cloud Deployment | Start +200–230 phút | Start +230 phút |
-| Wrap-up và nộp bài | Start +230–240 phút | Start +240 phút |
+| Giai đoạn                      | Khung thời gian     | Mốc kiểm tra    |
+| ------------------------------ | ------------------- | --------------- |
+| CP0 — Setup                    | Start +0–20 phút    | Start +20 phút  |
+| CP1 — Config, Health & Logging | Start +20–60 phút   | Start +60 phút  |
+| CP2 — Docker                   | Start +60–105 phút  | Start +105 phút |
+| Giải lao                       | Start +105–115 phút | —               |
+| CP3 — API Security             | Start +115–160 phút | Start +160 phút |
+| CP4 — Scaling & Reliability    | Start +160–200 phút | Start +200 phút |
+| CP5 — Cloud Deployment         | Start +200–230 phút | Start +230 phút |
+| Wrap-up và nộp bài             | Start +230–240 phút | Start +240 phút |
 
 ## CP0 — Setup
 

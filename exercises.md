@@ -2,10 +2,10 @@
 
 > **Bài làm cá nhân.** Trả lời bằng lời của chính bạn, dựa trên những gì bạn quan sát được khi chạy code — không sao chép đáp án của người khác.
 >
-> Cách trả lời: thay dòng `> *Câu trả lời của bạn*` bằng câu trả lời.
+> Cách trả lời: thay dòng placeholder bằng câu trả lời.
 > `grade.py` đếm số câu đã trả lời (15 điểm cho 10 câu).
 >
-> Họ và tên: **Vũ Hiệu Thiên**  Mã học viên: **2A202602867**
+> Họ và tên: **Vũ Hiếu Thiên** Mã học viên: **2A202602867**
 
 ---
 
@@ -24,6 +24,7 @@ Chạy service và gọi `/ask` vài lần. Dán một dòng log JSON bạn thu 
 > Dòng log: `{"event":"ask_completed","level":"info","timestamp":"2026-09-28T11:08:00.123456+00:00","user_id":"sv01","tokens_in":48,"tokens_out":52,"cost_usd":3.84e-05}`
 >
 > Hai việc làm được mà `print()` không:
+>
 > 1. **Query/filter tự động**: Dùng log aggregation (Datadog, Loki, CloudWatch) để lọc `event=ask_completed AND user_id=sv01 AND cost_usd>0.001` — `print()` chỉ ra text vô cấu trúc, không parse được.
 > 2. **Tính toán aggregate**: `SUM(cost_usd) GROUP BY user_id` để biết user nào tốn nhiều tiền nhất, hoặc `COUNT(*) WHERE level=error` để alert tỷ lệ lỗi — `print()` không cho phép group by, sum, count trên trường dữ liệu.
 
@@ -39,10 +40,10 @@ docker build -t agent:multi .
 docker images | grep agent
 ```
 
-| Bản | Dung lượng |
-|-----|-----------|
-| 1 stage (bản đầu) | ~1.1 GB |
-| Multi-stage | ~200 MB |
+| Bản               | Dung lượng |
+| ----------------- | ---------- |
+| 1 stage (bản đầu) | ~1.1 GB    |
+| Multi-stage       | ~200 MB    |
 
 Giải thích: phần dung lượng chênh lệch đó là những gì?
 
@@ -55,6 +56,7 @@ Giải thích: phần dung lượng chênh lệch đó là những gì?
 Sửa một ký tự trong `app/main.py` rồi build lại. Với Dockerfile của bạn, những layer nào được dùng lại từ cache, layer nào phải chạy lại? Nếu bạn đặt `COPY . .` lên trước `RUN pip install` thì kết quả khác thế nào?
 
 > Dockerfile hiện tại: `COPY requirements.txt` → `RUN pip install` → `COPY app ./app` → `COPY utils ./utils`.
+>
 > - Sửa 1 ký tự trong `app/main.py` → chỉ layer `COPY app` và các layer sau bị invalidate, layer `pip install` **dùng lại cache** → build nhanh.
 > - Nếu đặt `COPY . .` trước `RUN pip install` → mỗi lần sửa code đều invalidate layer copy → `pip install` chạy lại toàn bộ → build chậm gấp nhiều lần.
 
@@ -75,6 +77,7 @@ Container mặc định chạy bằng root. Mô tả chuỗi sự kiện dẫn t
 Rate limit của bạn dùng sliding window 60 giây. Nếu thay bằng cách đếm theo phút đồng hồ (reset lúc giây 00), một người dùng có thể gửi tối đa bao nhiêu request trong 2 giây liên tiếp khi hạn mức là 10/phút? Giải thích cách đạt được con số đó.
 
 > Với đếm theo phút đồng hồ (reset lúc giây 00), limit 10/phút:
+>
 > - User gửi 10 request lúc **10:00:59** (phút 0)
 > - User gửi 10 request lúc **10:01:01** (phút 1)
 > - Tổng **20 request trong 2 giây** vẫn "đúng luật" vì reset giữa hai phút.
@@ -99,6 +102,7 @@ Hai cơ chế này khác nhau ở điểm nào? Cho một tình huống mà rate
 Nếu gộp hai endpoint làm một và cho nó kiểm tra Redis, chuyện gì xảy ra với cụm 3 container khi Redis mất kết nối 30 giây? Trả lời theo đúng thứ tự sự kiện.
 
 > Gộp 2 endpoint, kiểm tra Redis:
+>
 > 1. Redis mất kết nối 30 giây
 > 2. `/health` (gộp) trả 503 vì Redis down
 > 3. Orchestrator (K8s/Docker/Cloud Run) nhận 503 → coi container **unhealthy**
@@ -115,16 +119,18 @@ Nếu gộp hai endpoint làm một và cho nó kiểm tra Redis, chuyện gì x
 Chạy `docker compose up --scale agent=3` rồi gọi `/ask` nhiều lần với cùng một `X-User-Id`. Quan sát `history_length` trong response. Nếu lịch sử được lưu trong một dict Python thay vì Redis, bạn sẽ thấy con số đó thay đổi thế nào?
 
 > Với `docker compose up --scale agent=3` + Redis:
+>
 > - User gửi câu 1 → instance A → history_length = 1
 > - User gửi câu 2 → instance B → history_length = 2 (đọc từ Redis chung)
 > - User gửi câu 3 → instance C → history_length = 3
-> → `history_length` **tăng đều** qua các request.
+>   → `history_length` **tăng đều** qua các request.
 >
 > Nếu dùng dict Python trong RAM (mỗi instance 1 dict riêng):
+>
 > - Câu 1 → instance A → dict A = [1], history_length = 1
 > - Câu 2 → instance B → dict B = [], history_length = 0 (mất trí nhớ!)
 > - Câu 3 → instance A → dict A = [1, 3], history_length = 2
-> → `history_length` **nhảy vọt 0, 1, 2...** không nhất quán.
+>   → `history_length` **nhảy vọt 0, 1, 2...** không nhất quán.
 
 ---
 

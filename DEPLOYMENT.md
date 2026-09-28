@@ -6,7 +6,7 @@ Trạng thái hiện tại: Đã deploy thành công lên Render. Public URL ho�
 
 | Mục         | Nội dung                                                                                          |
 | ----------- | ------------------------------------------------------------------------------------------------- |
-| Họ và tên   | **Vũ Hiệu Thiên**                                                                                 |
+| Họ và tên   | **Vũ Hiếu Thiên**                                                                                 |
 | Mã học viên | **2A202602867**                                                                                   |
 | Repo        | **https://github.com/Soraishiro/K4-L3A-DAY12-VuHieuThien-2A202602867-CloudServicesAndDeployment** |
 
