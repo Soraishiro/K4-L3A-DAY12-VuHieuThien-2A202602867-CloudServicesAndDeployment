@@ -62,7 +62,7 @@ pytest tests/ -v -m "not docker"
 ```
 
 **Kết quả mong đợi: hầu hết test RỚT.** Đó là đúng — bạn chưa viết code nào.
-Điều cần xác nhận là pytest *chạy được* và bạn *đọc được* thông báo lỗi. Nếu
+Điều cần xác nhận là pytest _chạy được_ và bạn _đọc được_ thông báo lỗi. Nếu
 thấy `ModuleNotFoundError` hoặc `ImportError`, môi trường chưa cài xong.
 
 ---
@@ -81,8 +81,8 @@ app.run(port=8000, debug=True)      # cloud gán cổng khác; debug=True lộ s
 print(f"user {uid} hỏi {question}") # log không lọc được, không cảnh báo được
 ```
 
-**12-Factor App** trả lời bằng một nguyên tắc: *code là thứ giống nhau ở mọi
-môi trường, config là thứ khác nhau — nên config phải nằm ngoài code.*
+**12-Factor App** trả lời bằng một nguyên tắc: _code là thứ giống nhau ở mọi
+môi trường, config là thứ khác nhau — nên config phải nằm ngoài code._
 Cùng một image chạy ở laptop, staging và production, chỉ khác biến môi trường.
 
 ### Việc cần làm
@@ -109,14 +109,20 @@ pydantic-settings tự ánh xạ tên trường sang biến môi trường viế
 Cài `log_event()` sao cho mỗi lần gọi in ra **một dòng JSON**:
 
 ```json
-{"event": "ask_completed", "level": "info", "timestamp": "2026-08-01T09:30:00+00:00", "user_id": "sv01", "cost_usd": 0.0001}
+{
+  "event": "ask_completed",
+  "level": "info",
+  "timestamp": "2026-08-01T09:30:00+00:00",
+  "user_id": "sv01",
+  "cost_usd": 0.0001
+}
 ```
 
 Một dòng — không `indent`. Cloud gom log theo dòng; JSON xuống dòng là một log
 bị vỡ thành nhiều mảnh vô nghĩa.
 
 Có định dạng này rồi thì bạn hỏi được những câu mà `print()` không trả lời nổi:
-*"user nào tiêu nhiều tiền nhất hôm nay?"*, *"tỷ lệ lỗi 5 phút qua là bao nhiêu?"*
+_"user nào tiêu nhiều tiền nhất hôm nay?"_, _"tỷ lệ lỗi 5 phút qua là bao nhiêu?"_
 
 #### 1.3 — `/health` trong `app/main.py`
 
@@ -165,7 +171,7 @@ pytest tests/test_cp1.py -v
 ### Vấn đề
 
 "Máy tôi chạy được" — vì máy bạn có Python 3.11, máy server có 3.9; máy bạn có
-`libpq`, server không. Docker đóng gói *cả môi trường* vào một image: cùng một
+`libpq`, server không. Docker đóng gói _cả môi trường_ vào một image: cùng một
 image thì chạy giống nhau ở mọi nơi.
 
 Nhưng image sai cách cũng gây họa: image 1.2GB làm deploy chậm 5 phút mỗi lần;
@@ -235,8 +241,8 @@ có healthcheck, và:
 
 ```yaml
 environment:
-  AGENT_API_KEY: ${AGENT_API_KEY}      # đọc từ .env, KHÔNG viết thẳng khóa
-  REDIS_URL: redis://redis:6379/0      # `redis` là tên service = hostname
+  AGENT_API_KEY: ${AGENT_API_KEY} # đọc từ .env, KHÔNG viết thẳng khóa
+  REDIS_URL: redis://redis:6379/0 # `redis` là tên service = hostname
 ```
 
 `localhost` bên trong container là chính container đó, không phải máy bạn —
@@ -292,11 +298,11 @@ của người lạ là một lần bạn trả tiền cho nhà cung cấp LLM.
 
 Ba lớp, ba câu hỏi khác nhau:
 
-| Lớp | Câu hỏi | Mã lỗi |
-|-----|---------|--------|
-| Authentication | Bạn là ai? | 401 |
-| Rate limiting | Bạn gọi có quá nhanh không? | 429 |
-| Cost guard | Bạn đã tiêu hết ngân sách chưa? | 402 |
+| Lớp            | Câu hỏi                         | Mã lỗi |
+| -------------- | ------------------------------- | ------ |
+| Authentication | Bạn là ai?                      | 401    |
+| Rate limiting  | Bạn gọi có quá nhanh không?     | 429    |
+| Cost guard     | Bạn đã tiêu hết ngân sách chưa? | 402    |
 
 ### Việc cần làm
 
@@ -322,6 +328,7 @@ expire(key, 60)                      # key tự dọn
 ```
 
 Hai chi tiết dễ sai:
+
 - **Kiểm tra trước, ghi nhận sau.** Ghi trước rồi đếm sẽ chặn nhầm ngay ở
   request thứ `limit`.
 - **Member phải duy nhất** (`f"{now}:{uuid4().hex}"`). Hai request cùng
@@ -418,6 +425,7 @@ container B. Nếu lịch sử nằm trong RAM của A thì B không biết gì 
 trí nhớ" ngẫu nhiên. Đó là lý do stateless không phải tùy chọn.
 
 Hai chi tiết bắt buộc:
+
 - `ltrim` giữ tối đa `HISTORY_MAX_MESSAGES` message gần nhất — prompt dài vô hạn
   = tiền token vô hạn
 - `expire` để hội thoại cũ tự hết hạn — không thì Redis đầy dần đến khi sập
@@ -435,11 +443,11 @@ Redis chết  →  503 {"status": "not ready", "redis": false}
 
 Khác `/health` ở đúng một điểm cốt lõi:
 
-| | `/health` (liveness) | `/ready` (readiness) |
-|---|---|---|
-| Câu hỏi | Process còn sống không? | Nhận traffic được chưa? |
-| Kiểm tra dependency | **Không** | **Có** |
-| Trả 503 thì sao | Orchestrator **restart** container | LB **ngừng gửi** request, không restart |
+|                     | `/health` (liveness)               | `/ready` (readiness)                    |
+| ------------------- | ---------------------------------- | --------------------------------------- |
+| Câu hỏi             | Process còn sống không?            | Nhận traffic được chưa?                 |
+| Kiểm tra dependency | **Không**                          | **Có**                                  |
+| Trả 503 thì sao     | Orchestrator **restart** container | LB **ngừng gửi** request, không restart |
 
 Gộp hai cái làm một là lỗi kinh điển: Redis mất kết nối 30 giây → cả 3 container
 đều báo unhealthy → orchestrator restart cả 3 cùng lúc → khi Redis quay lại thì
@@ -520,11 +528,11 @@ pytest tests/test_cp4.py -v
 
 ### Chọn platform
 
-| Platform | Độ khó | Free tier | Redis kèm theo |
-|----------|--------|-----------|----------------|
-| **Railway** | ⭐ | $5 credit dùng thử | Có, thêm 1 click |
-| **Render** | ⭐⭐ | 750 giờ/tháng | Có (Key Value) |
-| Cloud Run | ⭐⭐⭐ | 2 triệu request/tháng | Không — cần Memorystore/Upstash |
+| Platform    | Độ khó | Free tier             | Redis kèm theo                  |
+| ----------- | ------ | --------------------- | ------------------------------- |
+| **Railway** | ⭐     | $5 credit dùng thử    | Có, thêm 1 click                |
+| **Render**  | ⭐⭐   | 750 giờ/tháng         | Có (Key Value)                  |
+| Cloud Run   | ⭐⭐⭐ | 2 triệu request/tháng | Không — cần Memorystore/Upstash |
 
 Chọn Railway nếu bạn muốn xong nhanh. Cả hai đều đọc `Dockerfile` bạn vừa viết.
 
@@ -662,11 +670,11 @@ chạy test, build image, và **chỉ khi tất cả xanh** mới deploy. Mọi 
 
 Đặt file YAML vào `.github/workflows/`, GitHub tự đọc và chạy. Ba khái niệm:
 
-| Khái niệm | Là gì |
-|-----------|-------|
-| **workflow** | một file YAML, kích hoạt bởi một sự kiện (`on:`) |
-| **job** | một nhóm bước chạy trên một máy ảo riêng; các job mặc định chạy **song song** |
-| **step** | một lệnh (`run:`) hoặc một action dùng lại của người khác (`uses:`) |
+| Khái niệm    | Là gì                                                                         |
+| ------------ | ----------------------------------------------------------------------------- |
+| **workflow** | một file YAML, kích hoạt bởi một sự kiện (`on:`)                              |
+| **job**      | một nhóm bước chạy trên một máy ảo riêng; các job mặc định chạy **song song** |
+| **step**     | một lệnh (`run:`) hoặc một action dùng lại của người khác (`uses:`)           |
 
 Điểm hay bị hiểu nhầm: job chạy song song, nên `deploy` sẽ chạy **cùng lúc** với
 `test` nếu bạn không nói gì. `needs:` là thứ xâu chúng lại thành dây chuyền.
@@ -838,22 +846,23 @@ Nộp **link repository** lên LMS. Đối chiếu lại [danh sách kiểm tra]
 
 ## Phụ Lục A — Lỗi Thường Gặp
 
-| Triệu chứng | Nguyên nhân thường gặp | Cách xử lý |
-|-------------|------------------------|------------|
-| `ValidationError: agent_api_key Field required` | chưa có `.env` hoặc thiếu biến | `cp .env.example .env` rồi điền khóa |
-| `ConnectionError: Error 61 connecting to localhost:6379` | Redis chưa chạy | `docker compose up -d redis` hoặc `REDIS_URL=fake://` |
-| `ModuleNotFoundError: No module named 'app'` | chạy pytest từ thư mục con | chạy từ gốc repo |
-| `curl: (7) Failed to connect` | uvicorn bind `127.0.0.1` trong container | đổi sang `--host 0.0.0.0` |
-| Container start rồi tắt ngay | thiếu biến môi trường | `docker compose logs agent` |
-| `docker build` không dùng cache | `COPY . .` đứng trước `pip install` | đảo thứ tự |
-| Image > 500MB | build 1 stage, hoặc base image không slim | multi-stage + `python:3.11-slim` |
-| 429 xuất hiện quá sớm | `zadd` trước `zcard` | kiểm tra trước, ghi nhận sau |
-| `/ready` luôn 200 dù Redis chết | không dùng kết quả `ping()` | `if not store.ping(): return 503` |
-| Deploy xong health check fail | app không đọc `$PORT` | `--port ${PORT:-8000}` |
+| Triệu chứng                                              | Nguyên nhân thường gặp                    | Cách xử lý                                            |
+| -------------------------------------------------------- | ----------------------------------------- | ----------------------------------------------------- |
+| `ValidationError: agent_api_key Field required`          | chưa có `.env` hoặc thiếu biến            | `cp .env.example .env` rồi điền khóa                  |
+| `ConnectionError: Error 61 connecting to localhost:6379` | Redis chưa chạy                           | `docker compose up -d redis` hoặc `REDIS_URL=fake://` |
+| `ModuleNotFoundError: No module named 'app'`             | chạy pytest từ thư mục con                | chạy từ gốc repo                                      |
+| `curl: (7) Failed to connect`                            | uvicorn bind `127.0.0.1` trong container  | đổi sang `--host 0.0.0.0`                             |
+| Container start rồi tắt ngay                             | thiếu biến môi trường                     | `docker compose logs agent`                           |
+| `docker build` không dùng cache                          | `COPY . .` đứng trước `pip install`       | đảo thứ tự                                            |
+| Image > 500MB                                            | build 1 stage, hoặc base image không slim | multi-stage + `python:3.11-slim`                      |
+| 429 xuất hiện quá sớm                                    | `zadd` trước `zcard`                      | kiểm tra trước, ghi nhận sau                          |
+| `/ready` luôn 200 dù Redis chết                          | không dùng kết quả `ping()`               | `if not store.ping(): return 503`                     |
+| Deploy xong health check fail                            | app không đọc `$PORT`                     | `--port ${PORT:-8000}`                                |
 
 ## Phụ Lục B — Bảng Tra Nhanh
 
 **pytest**
+
 ```bash
 pytest tests/test_cp3.py -v            # một checkpoint
 pytest tests/ -v -m "not docker"       # bỏ qua test build (nhanh hơn nhiều)
@@ -862,6 +871,7 @@ pytest tests/test_cp3.py -k rate       # chỉ chạy test có "rate" trong tên
 ```
 
 **Docker**
+
 ```bash
 docker build -t day12-agent:prod .
 docker images day12-agent:prod                 # xem dung lượng
@@ -872,6 +882,7 @@ docker compose down -v                         # dọn sạch, xóa cả volume
 ```
 
 **Redis**
+
 ```bash
 docker compose exec redis redis-cli KEYS '*'
 docker compose exec redis redis-cli LRANGE history:sv01 0 -1
@@ -881,11 +892,11 @@ docker compose exec redis redis-cli ZCARD ratelimit:sv01
 
 **Mã trạng thái HTTP dùng trong lab**
 
-| Mã | Ý nghĩa | Xuất hiện khi |
-|----|---------|---------------|
-| 200 | OK | mọi thứ ổn |
-| 401 | Unauthorized | thiếu/sai API key |
-| 402 | Payment Required | hết ngân sách tháng |
+| Mã  | Ý nghĩa              | Xuất hiện khi                     |
+| --- | -------------------- | --------------------------------- |
+| 200 | OK                   | mọi thứ ổn                        |
+| 401 | Unauthorized         | thiếu/sai API key                 |
+| 402 | Payment Required     | hết ngân sách tháng               |
 | 422 | Unprocessable Entity | body sai định dạng (pydantic bắt) |
-| 429 | Too Many Requests | vượt rate limit |
-| 503 | Service Unavailable | chưa ready, hoặc đang tắt dần |
+| 429 | Too Many Requests    | vượt rate limit                   |
+| 503 | Service Unavailable  | chưa ready, hoặc đang tắt dần     |
