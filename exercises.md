@@ -35,19 +35,32 @@ Chạy service và gọi `/ask` vài lần. Dán một dòng log JSON bạn thu 
 Build cả hai phiên bản và ghi lại số đo thật:
 
 ```bash
-docker build -f <Dockerfile-1-stage> -t agent:single .
+docker build -f Dockerfile.single -t agent:single .
 docker build -t agent:multi .
 docker images | grep agent
 ```
 
-| Bản               | Dung lượng |
-| ----------------- | ---------- |
-| 1 stage (bản đầu) | ~1.1 GB    |
-| Multi-stage       | ~200 MB    |
+Mình build thêm một bản nữa để tìm ra chỗ thực sự gây phình image:
 
-Giải thích: phần dung lượng chênh lệch đó là những gì?
+| Bản | Base image | Dung lượng |
+|-----|-----------|-----------|
+| Single-stage | `python:3.11` (đầy đủ) | **1.73 GB** |
+| Single-stage | `python:3.11-slim` | **287 MB** |
+| Multi-stage | `python:3.11-slim` (bản mình nộp) | **271 MB** |
 
-> Chênh lệch ~900 MB là: compiler toolchain (gcc, build-essential), pip cache, source code tạm, dependencies dev. Multi-stage chỉ copy `/install` (site-packages đã compile) sang stage runtime `python:3.11-slim`, bỏ qua toàn bộ build tools.
+Kết quả này làm mình sửa lại nhận định ban đầu. Mình tưởng phần chênh lệch lớn là do
+multi-stage, nhưng thực tế khi cả hai vế đều dùng base `slim` thì multi-stage chỉ
+tiết kiệm **16 MB**. Con số hơn 1GB nằm ở chỗ khác: nó là do chọn base image.
+
+Phân rã 1.73GB của bản single-stage:
+- `python:3.11` bản đầy đủ đã nặng ~1.4GB (chứa gcc, header để build C extension)
+- `pip install` không dùng `--no-cache-dir` nên còn giữ lại cache của wheel
+- Multi-stage lợi ở đây là **cắt pip cache** và công cụ build, chứ không phải bớt base image
+- Nhưng nếu runtime vẫn là `python:3.11-slim` thì phần compiler toolchain vốn đã
+  không nằm trong image cuối — build xong xuống runtime nó biến mất sạch
+
+Kết luận: `slim` + multi-stage là hai việc độc lập, không thay thế nhau. Nếu chỉ
+multi-stage mà giữ base `python:3.11` thì image vẫn nặng vì base đã chiếm sẵn 1.4GB.
 
 ---
 
