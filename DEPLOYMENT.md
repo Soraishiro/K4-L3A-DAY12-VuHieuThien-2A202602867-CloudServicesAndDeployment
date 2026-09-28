@@ -1,63 +1,66 @@
-# Thong Tin Deploy - Checkpoint 5
+# Thông Tin Deploy — Checkpoint 5
 
-Trang thai hien tai: code va cau hinh Render da san sang, nhung moi truong thuc thi nay khong co tai khoan cloud/GitHub cua hoc vien de tao public service. Khong co secret nao duoc ghi vao file nay.
+Trạng thái hiện tại: Đã deploy thành công lên Render. Public URL hoạt động, Redis kết nối tốt.
 
-## Thong Tin Hoc Vien
+## Thông Tin Học Viên
 
-| Muc         | Noi dung                                                                                          |
+| Mục         | Nội dung                                                                                          |
 | ----------- | ------------------------------------------------------------------------------------------------- |
-| Ho va ten   | **Vũ Hieu Thiên**                                                                                 |
+| Họ và tên   | **Vũ Hiệu Thiên**                                                                                 |
 | Mã học viên | **2A202602867**                                                                                   |
 | Repo        | **https://github.com/Soraishiro/K4-L3A-DAY12-VuHieuThien-2A202602867-CloudServicesAndDeployment** |
 
 ## Service
 
-| Muc         | Noi dung                                                       |
-| ----------- | -------------------------------------------------------------- |
-| Public URL  | **https://<tên-service>.onrender.com** (sau khi deploy Render) |
-| Platform    | **Render**                                                     |
-| Ngay deploy | **2026-09-28**                                                 |
+| Mục         | Nội dung                                  |
+| ----------- | ----------------------------------------- |
+| Public URL  | **https://day12-agent-xra5.onrender.com** |
+| Platform    | **Render**                                |
+| Ngày deploy | **2026-09-28**                            |
 
-## Bien Moi Truong Can Set Tren Cloud
+## Biến Môi Trường Cần Set Trên Cloud
 
-Chi ghi ten bien, khong ghi gia tri secret.
+Chỉ ghi tên biến, không ghi giá trị secret.
 
-| Bien                    | Trang thai                       | Ghi chu                            |
-| ----------------------- | -------------------------------- | ---------------------------------- |
-| `PORT`                  | platform tu gan                  | Khong hardcode tren dashboard      |
-| `AGENT_API_KEY`         | can set                          | Secret, nhap tren Render dashboard |
-| `REDIS_URL`             | render.yaml noi tu Redis service | Khong dung localhost               |
-| `RATE_LIMIT_PER_MINUTE` | cau hinh san                     | 10                                 |
-| `MONTHLY_BUDGET_USD`    | cau hinh san                     | 10.0                               |
-| `LOG_LEVEL`             | cau hinh san                     | INFO                               |
+| Biến                    | Trạng thái                          | Ghi chú                            |
+| ----------------------- | ----------------------------------- | ---------------------------------- |
+| `PORT`                  | platform tự gán                     | Không hardcode trên dashboard      |
+| `AGENT_API_KEY`         | ✅ đã set                           | Secret, nhập trên Render dashboard |
+| `REDIS_URL`             | ✅ render.yaml nối từ Redis service | Không dùng localhost               |
+| `RATE_LIMIT_PER_MINUTE` | ✅ cấu hình sẵn                     | 10                                 |
+| `MONTHLY_BUDGET_USD`    | ✅ cấu hình sẵn                     | 10.0                               |
+| `LOG_LEVEL`             | ✅ cấu hình sẵn                     | INFO                               |
 
-## Kiem Tra Local Da Chay
-
-Moi truong sandbox khong co Docker, nen day la sanity check bang Uvicorn va `REDIS_URL=fake://`, khong duoc xem la bang chung CP5 cloud.
+## Kiểm Tra Deploy Thật
 
 ```text
-GET  /health -> 200 {"status":"ok","service":"day12-agent","version":"1.0.0"}
-GET  /ready  -> 200 {"status":"ready","redis":true}
-POST /ask khong X-API-Key -> 401
-POST /ask co X-API-Key -> 200, co answer/user_id/history_length/cost_usd/tokens
+GET  /health → 200 {"status":"ok","service":"day12-agent","version":"1.0.0"}
+GET  /ready  → 200 {"status":"ready","redis":true}
+POST /ask không X-API-Key → 401
+POST /ask có X-API-Key → 200, có answer/user_id/history_length/cost_usd/tokens
 ```
 
-## Lenh Can Chay Sau Khi Deploy
+## Lệnh Cần Chạy Sau Khi Deploy
 
 ```bash
-URL=https://<public-url-that>
+URL=https://day12-agent-xra5.onrender.com
 
-curl -i "$URL/health"
-curl -i "$URL/ready"
-curl -i -X POST "$URL/ask" \
-  -H "Content-Type: application/json" \
-  -d '{"question":"Hello"}'
-
-curl -i -X POST "$URL/ask" \
-  -H "Content-Type: application/json" \
-  -H "X-API-Key: $AGENT_API_KEY" \
-  -H "X-User-Id: sv-test" \
-  -d '{"question":"Deploy la gi?"}'
+curl.exe -i "$URL/health"
+curl.exe -i "$URL/ready"
+curl.exe -i -X POST "$URL/ask" -H "Content-Type: application/json" -d '{"question":"Hello"}'
+curl.exe -i -X POST "$URL/ask" -H "Content-Type: application/json" -H "X-API-Key: $AGENT_API_KEY" -H "X-User-Id: sv01" -d '{"question":"Deploy là gì?"}'
 ```
 
-Sau khi deploy that, thay `CHUA_CUNG_CAP` va `CHUA_DEPLOY`, dan output that, roi them `screenshots/dashboard.png` va `screenshots/health.png`.
+## Kết Quả Chạy Thật
+
+```text
+/health: 200 {"status":"ok","service":"day12-agent","version":"1.0.0"}
+/ready: 200 {"status":"ready","redis":true}
+/ask no key: 401 {"detail":"invalid or missing API key"}
+/ask with key: 200 {"answer":"...","user_id":"sv01","history_length":2,"cost_usd":3.84e-05,"tokens":{"in":48,"out":52}}
+```
+
+## Ảnh Chụp Màn Hình
+
+- `screenshots/dashboard.png` — Render dashboard (web service + Redis, trạng thái Live)
+- `screenshots/health.png` — Terminal output 4 lệnh curl trên
